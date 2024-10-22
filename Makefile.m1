@@ -1,14 +1,39 @@
 
 
-all: hello rootfs.img
-	mcopy -i rootfs.img@@1M hello ::/
-	mmd -i rootfs.img@@1M boot 
-	mcopy -i rootfs.img@@1M grub.cfg ::/boot
+PREFIX=i686-linux-gnu-
+CC := $(PREFIX)gcc
+LD := $(PREFIX)ld
+OBJDUMP := $(PREFIX)objdump
+OBJCOPY := $(PREFIX)objcopy
+SIZE := $(PREFIX)size
+CONFIGS := -DCONFIG_HEAP_SIZE=4096
+CFLAGS := -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall 
 
-hello: hello.c
-	i386-unknown-elf-gcc -c -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall hello.c
-	i386-unknown-elf-ld --section-start=.text=100000 --section-start=.rodata=0  -e main -melf_i386  hello.o -o hello
+ODIR = obj
+SDIR = src
 
+OBJS = \
+	kernel_main.o \
+
+# Make sure to keep a blank line here after OBJS list
+
+OBJ = $(patsubst %,$(ODIR)/%,$(OBJS))
+
+$(ODIR)/%.o: $(SDIR)/%.c
+	$(CC) $(CFLAGS) -c -g -o $@ $^
+
+$(ODIR)/%.o: $(SDIR)/%.s
+	$(CC) $(CFLAGS) -c -g -o $@ $^
+
+
+all: bin rootfs.img
+
+bin: obj $(OBJ)
+	$(LD) -melf_i386  obj/* -Tkernel.ld -o kernel
+	$(SIZE) kernel
+
+obj:
+	mkdir -p obj
 
 rootfs.img:
 	dd if=/dev/zero of=rootfs.img bs=1M count=32
@@ -17,10 +42,14 @@ rootfs.img:
 	dd if=grub.img of=rootfs.img conv=notrunc seek=1
 	echo 'start=2048, type=83, bootable' | sfdisk rootfs.img
 	mkfs.vfat --offset 2048 -F16 rootfs.img
+	mcopy -i rootfs.img@@1M kernel ::/
+	mmd -i rootfs.img@@1M boot 
+	mcopy -i rootfs.img@@1M grub.cfg ::/boot
+
+
 
 debug:
-	screen -S qemu -d -m qemu-system-i386 -S -s -hda rootfs.img
-	TERM=xterm i386-unknown-elf-gdb -x gdb_os.txt && killall qemu-system-i386
+	./launch_qemu.sh
 
 clean:
-	rm -f grub.img hello hello.o rootfs.img
+	rm -f grub.img kernel rootfs.img obj/*

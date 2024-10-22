@@ -1,4 +1,4 @@
-file hello
+file kernel
 target remote localhost:1234
 layout src
 b main
