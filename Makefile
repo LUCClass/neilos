@@ -46,10 +46,14 @@ rootfs.img:
 	mmd -i rootfs.img@@1M boot 
 	mcopy -i rootfs.img@@1M grub.cfg ::/boot
 
-
+disassemble:
+	$(OBJDUMP) --source kernel
 
 debug:
 	./launch_qemu.sh
+
+run:
+	qemu-system-i386 -hda rootfs.img
 
 clean:
 	rm -f grub.img kernel rootfs.img obj/*
