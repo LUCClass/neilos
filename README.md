@@ -15,7 +15,7 @@ pi@raspberrypi:~ $ sudo apt update && sudo apt upgrade
 
 
 ```
-pi@raspberrypi:~ $ sudo apt install qemu-system-i386 vim screen gcc-i686-linux-gnu gdb-multiarch make git mtools
+pi@raspberrypi:~ $ sudo apt install qemu-system-i386 vim screen gcc-i686-linux-gnu gdb-multiarch make git mtools grub-pc
 ```
 
 
