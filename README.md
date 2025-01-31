@@ -10,12 +10,25 @@ This is a shell for a custom bare metal operating system on the Intel 386. It is
 You first need to upgrade all your system's software:
 
 ```
-pi@raspberrypi:~ $ sudo apt update && sudo apt upgrade
+user@system:~ $ sudo apt update && sudo apt upgrade
 ```
 
 
 ```
-pi@raspberrypi:~ $ sudo apt install qemu-system-i386 vim screen gcc-i686-linux-gnu gdb-multiarch make git mtools grub-pc
+user@system:~ $ sudo apt install qemu-system-i386 vim screen gcc-i686-linux-gnu gdb-multiarch make git mtools grub-pc
+```
+
+
+## ARM Laptop Users: Build Custom GRUB
+
+```
+user@system ~ $ sudo apt install autoconf gettext autopoint pkg-config flex bison
+user@system ~ $ git clone https://git.savannah.gnu.org/git/grub.git
+user@system ~ $ cd grub
+user@system ~ $ ./bootstrap
+user@system ~ $ ./configure --with-platform=pc --target=i686-linux-gnu --prefix=/usr/local/grub/
+user@system ~ $ make
+user@system ~ $ sudo make install
 ```
 
 
