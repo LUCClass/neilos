@@ -1,12 +1,11 @@
 
 
-PREFIX=
+PREFIX=i686-linux-gnu-
 CC := $(PREFIX)gcc
 LD := $(PREFIX)ld
 OBJDUMP := $(PREFIX)objdump
 OBJCOPY := $(PREFIX)objcopy
 SIZE := $(PREFIX)size
-GRUBLOC := 
 CONFIGS := -DCONFIG_HEAP_SIZE=4096
 CFLAGS := -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall 
 
@@ -38,23 +37,22 @@ obj:
 
 rootfs.img:
 	dd if=/dev/zero of=rootfs.img bs=1M count=32
-	$(GRUBLOC)grub-mkimage -p "(hd0,msdos1)/boot" -o grub.img -O i386-pc normal biosdisk multiboot multiboot2 configfile fat exfat part_msdos
-	dd if=/usr/lib/grub/i386-pc/boot.img  of=rootfs.img conv=notrunc
+	/usr/local/grub/bin/grub-mkimage -p "(hd0,msdos1)/boot" -o grub.img -O i386-pc normal biosdisk multiboot multiboot2 configfile fat exfat part_msdos
+	dd if=/usr/local/grub/lib/grub/i386-pc/boot.img  of=rootfs.img conv=notrunc
 	dd if=grub.img of=rootfs.img conv=notrunc seek=1
 	echo 'start=2048, type=83, bootable' | sfdisk rootfs.img
 	mkfs.vfat --offset 2048 -F16 rootfs.img
 	mcopy -i rootfs.img@@1M kernel ::/
 	mmd -i rootfs.img@@1M boot 
 	mcopy -i rootfs.img@@1M grub.cfg ::/boot
+	@echo " -- BUILD COMPLETED SUCCESSFULLY --"
 
-disassemble:
-	$(OBJDUMP) --source kernel
-
-debug:
-	./launch_qemu.sh
 
 run:
 	qemu-system-i386 -hda rootfs.img
+
+debug:
+	./launch_qemu.sh
 
 clean:
 	rm -f grub.img kernel rootfs.img obj/*
