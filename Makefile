@@ -1,6 +1,16 @@
 
+UNAME_P := $(shell uname -p)
 
-PREFIX=i686-linux-gnu-
+ifeq ($(UNAME_P),aarch64)
+PREFIX:=i686-linux-gnu-
+BOOTIMG:=/usr/local/grub/lib/grub/i386-pc/boot.img
+GRUBLOC:=/usr/local/grub/bin/
+else
+PREFIX:=
+BOOTIMG:=/usr/lib/grub/i386-pc/boot.img
+GRUBLOC :=
+endif
+
 CC := $(PREFIX)gcc
 LD := $(PREFIX)ld
 OBJDUMP := $(PREFIX)objdump
@@ -37,9 +47,9 @@ obj:
 
 rootfs.img:
 	dd if=/dev/zero of=rootfs.img bs=1M count=32
-	/usr/local/grub/bin/grub-mkimage -p "(hd0,msdos1)/boot" -o grub.img -O i386-pc normal biosdisk multiboot multiboot2 configfile fat exfat part_msdos
+	$(GRUBLOC)grub-mkimage -p "(hd0,msdos1)/boot" -o grub.img -O i386-pc normal biosdisk multiboot multiboot2 configfile fat exfat part_msdos
 	dd if=/usr/local/grub/lib/grub/i386-pc/boot.img  of=rootfs.img conv=notrunc
-	dd if=grub.img of=rootfs.img conv=notrunc seek=1
+	dd if=$(BOOTIMG) of=rootfs.img conv=notrunc
 	echo 'start=2048, type=83, bootable' | sfdisk rootfs.img
 	mkfs.vfat --offset 2048 -F16 rootfs.img
 	mcopy -i rootfs.img@@1M kernel ::/
